@@ -28,15 +28,29 @@ void setup() {
 void loop() {
   timer = millis();
   if(timer < 2000 && digitalRead(Datos)==HIGH && sync == 2){
+    mySerial.println("AT+CMGF=1");
+    digitalWrite(azul, HIGH);
+    delay(500);
+    digitalWrite(azul, LOW);
+    mySerial.println("AT+CNMI=1,2,0,0,0");
+    digitalWrite(rojo, HIGH);
+    delay(500);
+    digitalWrite(rojo, LOW);
     syncIn();
   }
   if(timer >= 2000 && sync != 1){sync = 0;}
   //--------------------------------------------------------------------------------------------------------------------------------------------
   if(mySerial.available()){
     //Serial.println("avai");
-    //mensaje = mySerial.readString();
-    //if(sync == 1 && mensaje[4] == ':'){getData(mensaje);}
-  Serial.write(mySerial.read());
+    mensaje = mySerial.readString();
+    delay(100);
+    Serial.print(sync);
+    Serial.println(mensaje.substring(2,7));
+    if(sync==1 && mensaje.substring(2,7)=="+CMT:"){
+      Serial.println("prueba prueba");
+      getData(mensaje);digitalWrite(verde, HIGH);delay(500);digitalWrite(rojo, LOW);}
+    delay(100);
+  Serial.println(mensaje);
   }
   //--------------------------------------------------------------------------------------------------------------------------------------------
    if (Serial.available()){            // Si la comunicacion serie normal tiene datos
@@ -47,11 +61,15 @@ void loop() {
   }
   
   if(sync == 0){
+    digitalWrite(azul, LOW);
+    digitalWrite(rojo, LOW);
+    digitalWrite(verde, LOW);
+    
         // put your main code here, to run repeatedly:
     //SUBIR DATOS
     if(digitalRead(Datos)==HIGH)
     {
-     EnviaSMS("001");
+     EnviaSMS("001",numUsuario);
      //Evaluar();
       digitalWrite(azul, HIGH);
       delay(2000);
@@ -61,7 +79,7 @@ void loop() {
       
       if(digitalRead(Eliminar)==HIGH)
     {
-      EnviaSMS("002");
+      EnviaSMS("002",numUsuario);
       Evaluar();
       digitalWrite(rojo, HIGH);
       delay(2000);
@@ -70,7 +88,7 @@ void loop() {
       
       if(digitalRead(Ubicacion)==HIGH)
     {
-      EnviaSMS("003");
+      EnviaSMS("003",numUsuario);
       Evaluar();
       digitalWrite(verde, HIGH);
       delay(2000);
@@ -85,10 +103,12 @@ void loop() {
     }
 }
 
-void EnviaSMS(String x){              
- mySerial.println("AT+CMGF=1");                 
+void EnviaSMS(String x,String num){
+ mySerial.println("AT+CMGF=1"); 
+ String sms="+52"+num;
+ String smsNum="AT+CMGS=\""+sms+"\"";
  delay(100);                                
- mySerial.println("AT+CMGS=\"+527851005817\""); 
+ mySerial.println(smsNum); 
  delay(100);                                    
  mySerial.print(x);                 
  delay(500);                                    
@@ -99,27 +119,26 @@ void EnviaSMS(String x){
 }
 //--------------------------------------------------------------------------------------------------------------------------------------------
 void getData(String msj){
-  String msj2 = msj.substring(6);
+  String msj2 = msj.substring(9);
   int i = 1;
   while(msj2[i] != '"'){
     i++;
     }
-  numUsuario = msj2.substring(1,i-1);
+  numUsuario = msj2.substring(0,i);
   for(int j = 0; j <= 3; j++){
+      i++;
   while(msj2[i] != '"'){
       i++;
     }
-      i++;
   }
-  mensajeSync = msj2.substring(i);
-  Serial.println(numUsuario);
-  Serial.println(mensajeSync);
+  mensajeSync = msj2.substring(i+3,i+8);
+  Serial.print(numUsuario);
+  Serial.print(mensajeSync);
+  Serial.println("0");
+  EvaluarSMS(numUsuario,mensajeSync);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------------
 void syncIn(){
-    mySerial.println("AT+CMGF=1");
-    delay(100);
-    mySerial.println("AT+CNMI=1,2,0,0,0");
     sync = 1;
     digitalWrite(verde, HIGH);
     digitalWrite(azul, HIGH);
@@ -128,7 +147,16 @@ void syncIn(){
 void Evaluar(){
   if(mySerial.available()){         
   Serial.write(mySerial.read());   
-} 
+} }
+
+void EvaluarSMS(String numero,String mensaje){
+  if(mensaje=="85E72")
+  {
+    mySerial.println("AT+CPBW=1,\"+52"+numero+"\",145,\"01\"");
+    EnviaSMS("se ha sincronizado",numero);
+    sync=0;
+    
+    }
   
 }
 

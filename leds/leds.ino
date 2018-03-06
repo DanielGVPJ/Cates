@@ -6,7 +6,6 @@ int verde=2;
 int Datos=5;
 int Eliminar=6;
 int Ubicacion=7;
-String cadena[4];
 
 void setup() {
   Serial.begin(9600);
@@ -62,19 +61,14 @@ if(digitalRead(Datos)==HIGH)
 void EnviaSMS(String x){       
  mySerial.println("AT+CMGF=1");
  delay(100);                 
- cadena[0]=mySerial.read();
- mySerial.println("AT+CMGS=\"+527851005817\"");
- delay(100);                        
- cadena[1]=mySerial.readString();
+ mySerial.println("AT+CMGS=\"+522287774859\"");
+ delay(100);
  mySerial.print(x);
  delay(500);
- cadena[2]=mySerial.read();
  mySerial.print(char(26));
- delay(100);
- cadena[3]=mySerial.read();       
+ delay(100);     
  mySerial.println("");
- delay(100);              
- Serial.print(cadena[3]);            
+ delay(100);       
 }
 void Evaluar(){
   if(mySerial.available()){         
