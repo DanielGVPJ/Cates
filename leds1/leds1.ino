@@ -23,6 +23,9 @@ void setup() {
   pinMode(rojo,OUTPUT);
   pinMode(azul, OUTPUT);
   pinMode(verde,OUTPUT);
+
+  delay(100);
+  mySerial.println("AT+CPBF=\"01\"");
 }
 
 void loop() {
@@ -41,16 +44,19 @@ void loop() {
   if(timer >= 2000 && sync != 1){sync = 0;}
   //--------------------------------------------------------------------------------------------------------------------------------------------
   if(mySerial.available()){
-    //Serial.println("avai");
     mensaje = mySerial.readString();
     delay(100);
-    Serial.print(sync);
-    Serial.println(mensaje.substring(2,7));
     if(sync==1 && mensaje.substring(2,7)=="+CMT:"){
-      Serial.println("prueba prueba");
       getData(mensaje);digitalWrite(verde, HIGH);delay(500);digitalWrite(rojo, LOW);}
+    if(sync==2 && mensaje.substring(15,21)=="+CPBF:"){
+      
+        getNumber(mensaje);
+        
+      }
+      
     delay(100);
   Serial.println(mensaje);
+  Serial.println("---------------------");
   }
   //--------------------------------------------------------------------------------------------------------------------------------------------
    if (Serial.available()){            // Si la comunicacion serie normal tiene datos
@@ -59,7 +65,6 @@ void loop() {
     } 
     mySerial.println();               // Enviamos un fin de linea
   }
-  
   if(sync == 0){
     digitalWrite(azul, LOW);
     digitalWrite(rojo, LOW);
@@ -130,6 +135,10 @@ void getData(String msj){
   while(msj2[i] != '"'){
       i++;
     }
+    digitalWrite(azul, LOW);
+    delay(100);
+    digitalWrite(azul, HIGH);
+    delay(100);
   }
   mensajeSync = msj2.substring(i+3,i+8);
   Serial.print(numUsuario);
@@ -157,6 +166,20 @@ void EvaluarSMS(String numero,String mensaje){
     sync=0;
     
     }
+    
   
 }
+void getNumber(String msj)
+{
+  String msj2 = msj.substring(28);
+  int i = 1;
+  while(msj2[i] != '"'){
+    i++;
+    }
+  numUsuario = msj2.substring(0,i);
+  Serial.println(msj2);
+  Serial.println(numUsuario);
+  
+  
+  }
 
